@@ -1,0 +1,37 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import scienceplots
+
+plt.style.use(["science", "no-latex"])
+
+positive = pd.read_csv("distance_voltage_Positive.csv")
+negative = pd.read_csv("distance_voltage_Negative.csv")
+
+baseline = 0.99       # V
+sensitivity = -0.011  # V/mT
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+for data, label in [(positive, "Positive"), (negative, "Negative")]:
+    data = data.sort_values("Distance (cm)")
+    distance = data["Distance (cm)"]
+    field = (data["Voltage (V)"] - baseline) / sensitivity
+
+    axes[0].plot(distance, field, "o-", label=label)
+    axes[1].plot(distance, field.abs(), "o-", label=label)
+
+axes[0].set_title("Positive and Negative Fields")
+axes[0].set_ylabel("Field relative to baseline (mT)")
+axes[0].axhline(0, color="gray", linestyle="--", linewidth=1)
+
+axes[1].set_title("Field magnitude")
+axes[1].set_ylabel("Field magnitude (mT)")
+
+for ax in axes:
+    ax.set_xlabel("Separation distance (cm)")
+    ax.legend()
+    ax.grid(True, alpha=0.25)
+
+fig.tight_layout()
+fig.savefig("magnetic_field_comparison.png", dpi=300)
+plt.show()

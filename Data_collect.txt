@@ -1,0 +1,32 @@
+import serial
+import time
+import numpy as np
+
+distances = [1, 2, 3, 4, 5] # cm
+voltages = []
+
+with serial.Serial("COM4", 115200, timeout=2) as arduino:
+    time.sleep(2)
+
+    for distance in distances:
+        input(f"Move to {distance} cm, then press Enter: ")
+        arduino.reset_input_buffer()
+        arduino.readline()
+
+        readings = [float(arduino.readline()) for _ in range(20)]
+        voltage = sum(readings) / len(readings) * 5.0 / 1023
+        voltages.append(voltage)
+        print(round(voltage, 4), "V")
+
+table = pd.DataFrame({"Distance (cm)": distances,"Voltage (V)": voltages})
+slope = np.polyfit(distances, voltages, 1)[0]
+
+if np.isclose(slope, 0):
+    direction = "flat"
+elif slope < 0:
+    direction = "Positive"
+else:
+    direction = "Negative"
+
+filename = f"distance_voltage_{direction}.csv"
+table.to_csv(filename, index=False)
